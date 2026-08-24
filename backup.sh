@@ -24,39 +24,29 @@ then
         # Add the .bak extension (Important to keep a distinction and referene it later)
         compose_filename="${filename}.bak"
         # Scan the directory backups to look for the file in question
-        echo "No error yet..."
         for f in $backup_dir_contents
         do
-            # Obtain every single filename in the backups folder and store it in a variable
-            backup_filename=$(ls $f | tr "/" "\n" | tail -n 1)
-            # If at some point in the loop, the compose_filename (the original filename with
-            # the .bak extension added) is equal that in the backups folder, print a message
-            # showing it and exit.
-            if [[ $compose_filename == $backup_filename ]]
+            if [[ $(find $backup_dir -name $compose_filename -type f) ]]
             then
-                printf "The file << %s >> already exists in the backup folder\n" $filename
-                printf "%s\n" $f
+                printf "File found in directory\n"
+                read -p "Overwrite/exit [o/e]"
                 exit
+            else
+                # If the find command found nothing, proceed to make the copy
+                cp $path "$backup_dir$compose_filename"
+                # If the status code of the previous operation was 0, print a message
+                # showing it all went well, and an error message otherwise.
+                if (( $? == 0 ))
+                then
+                    echo "[+] The file has been copied succesfully"
+                    find $HOME/backups -name $compose_filename -type f
+                    exit
+                else
+                    echo "[!] An error has occurred."
+                    exit
+                fi
             fi
         done
-        # If the above condition was never met, that means the file was not found
-        # in the backup folder, so the script can proceed with its operation
-        
-        # Copy a the desired file to the same folder with the .bak extension
-        cp $path "${path}.bak"
-        # Then move it to the backup directory
-        mv "${path}.bak" $backup_dir
-        # If the status code of the previous operation was 0, print a message
-        # showing it all went well, and an error message otherwise.
-        if (( $? == 0 ))
-        then
-            echo "[+] The file has been copied succesfully"
-            find $HOME/backups -name $compose_filename -type f
-            exit
-        else
-            echo "[!] An error has occurred."
-            exit
-        fi
     fi
 fi
 

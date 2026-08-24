@@ -4,7 +4,7 @@
 # Validate the input of the user to avoid unexpected behaviors
 path=$1
 backup_dir=$HOME/backups/
-backup_dir_contents=$HOME/backups/*.bak
+backup_dir_contents=$HOME/backups/*
 
 # If the path provided DOES NOT contain a / at the end
 # add it and set it as the new value for the variable.
@@ -19,11 +19,12 @@ then
     # it to the backup folder.
     elif [ -f $path ]
     then
-        # Extract the of the file you wish to backup
+        # Extract the name of the file you wish to backup
         filename=$(ls $path | tr "/" "\n" | tail -n 1)
         # Add the .bak extension (Important to keep a distinction and referene it later)
         compose_filename="${filename}.bak"
         # Scan the directory backups to look for the file in question
+        echo "No error yet..."
         for f in $backup_dir_contents
         do
             # Obtain every single filename in the backups folder and store it in a variable
@@ -71,13 +72,13 @@ fi
 
 # If the first validation passes, scan the whole directory
 # and backup every single file to its dedicated backup folder
-for f in "${path}*"
+for f in ${path}*
 do
     # If the file in quetion is a directory, skip this copy
     # and proceed with the next file.
     if [ -d $f ]
     then
-        printf "\t[#] Skipping %s, is a directory\n" $path
+        printf "[&] Skipping %s, is a directory\n" $f
         continue
     else
         # Copy every file in the same folder with a .bak extension

@@ -1,7 +1,22 @@
 #!/bin/bash
 
+# Already implemented
+# [+] Detect if the user provided no arguments
+# [+] Determine if the provided folder/file actually exists
+# [+] Make a distinction between folders and files
+# [+] Scan a whole directory and copy its contents
+
+# To be implemented
+# [~] Copy directories
+# [~] Replace .bak file extension with tarballs
+
+# Find difficulty trying to implement
+
 # The path to the directory where to search
 # Validate the input of the user to avoid unexpected behaviors
+
+pdf_pattern=".*\.(pdf|PDF)$"
+
 input_path=$1
 backup_dir=$HOME/backups/
 backup_dir_contents=$HOME/backups/*
@@ -40,6 +55,7 @@ else
             # with the script.
             if [ -d $f ]
             then
+                #cp -R $f $backup_dir
                 continue
             # If it's a regular file, follow a simple process to copy and rename the
             # copy in the backup folders.
@@ -48,18 +64,17 @@ else
                 # Extract file name
                 filename=$(echo $f | tr "/" "\n" | tail -n 1)
 
+                #if [[ $f =~ $pdf_pattern ]]; then
+                    #printf "[P] PDF file found: %s\n" $f
+                    #continue
+                #fi
+
                 # Copy the file to the backups folder and add the .bak extension.
                 cp $f "$HOME/backups/$filename.bak"
-                printf "[+] File found: %s" $f
+                printf "[+] File found: %s\n" $f
 
                 # If this file is found in the backups folder, print a message
                 # indicating it was copied successfully, and an error message otherwise.
-                if find $backup_dir -name $filename -type f
-                then
-                    printf ", and copied\n"
-                else
-                    printf "\nThere was a problem copying the file\n"
-                fi
             fi
         done
         exit

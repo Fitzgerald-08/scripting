@@ -9,17 +9,20 @@
 # To be implemented
 # [~] Copy directories
 # [~] Replace .bak file extension with tarballs
+# [~] Finding duplicates
 
-# Find difficulty trying to implement
+# Found difficulty trying to implement
+# [!] Tell empty folder from non-empty
+# [!] Manage hidden files
+
+# Minor problems found
+# [-] When creating tarballs, the "Removing leading / from member names" pops up
 
 # The path to the directory where to search
 # Validate the input of the user to avoid unexpected behaviors
 
-pdf_pattern=".*\.(pdf|PDF)$"
-
 input_path=$1
-backup_dir=$HOME/backups/
-backup_dir_contents=$HOME/backups/*
+backup_dir=$HOME/backups
 
 # If the number of arguments is equal to 0, meaning no path is given,
 # print an error message and exit.
@@ -44,39 +47,31 @@ else
     # (That's the functionality for now, more will be added).
     if [ -f $input_path ]
     then
-        printf "You have entered a file\n"
+        printf "File found: %s\n" $input_path
+        printf "[+] Copying...\n"
+
+        # Extract filename
+        filename=$(echo $input_path | tr "/" "\n" | tail -n 1)
+
+        # Get the date to append to the filename
+        date_format=$(date +"%Y-%m-%e")
+        tar -czvf "$backup_dir/$filename-$date_format.tar.gz" $input_path
+
+        if [[ $? == 0 ]]; then
+            printf "[*] The file has been copied successfully\n"
+        else
+            printf "[!] An error has occurred\n"
+        fi
         exit
     # On the other hand, if it's a folder, scan the whole folder looking for files
     elif [ -d $input_path ]
     then
-        for f in $input_path/*
-        do
-            # If one of the entries turns out to be a folder, skip it and continue
-            # with the script.
-            if [ -d $f ]
-            then
-                #cp -R $f $backup_dir
-                continue
-            # If it's a regular file, follow a simple process to copy and rename the
-            # copy in the backup folders.
-            elif [ -f $f ]
-            then
-                # Extract file name
-                filename=$(echo $f | tr "/" "\n" | tail -n 1)
+        echo $input_path
+        date_format=$(date +"%Y-%m-%e")
 
-                #if [[ $f =~ $pdf_pattern ]]; then
-                    #printf "[P] PDF file found: %s\n" $f
-                    #continue
-                #fi
-
-                # Copy the file to the backups folder and add the .bak extension.
-                cp $f "$HOME/backups/$filename.bak"
-                printf "[+] File found: %s\n" $f
-
-                # If this file is found in the backups folder, print a message
-                # indicating it was copied successfully, and an error message otherwise.
-            fi
-        done
+        # Extract folder name
+        folder_name=$(echo $input_path | tr "/" "\n" | tail -n 1)
+        tar -czvf "$backup_dir/$folder_name-$date_format.tar.gz" $input_path
         exit
     fi
 fi

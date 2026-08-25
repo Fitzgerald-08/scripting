@@ -6,81 +6,62 @@ input_path=$1
 backup_dir=$HOME/backups/
 backup_dir_contents=$HOME/backups/*
 
-# If the path provided DOES NOT contain a / at the end
-# add it and set it as the new value for the variable.
+# If the number of arguments is equal to 0, meaning no path is given,
+# print an error message and exit.
 if [[ $# == 0 ]]
 then
-    echo "Provide at least the path or file name to backup"
-    exit
-fi
-
-if [[ ! $input_path =~ /$ ]]
-then
-    # If the file is a directory, scan it and return every single
-    # file stored in it.
-    if [ -d $input_path ]
-    then
-        input_path="${input_path}/"
-    # If it's a file, just create a backup copy of it and move
-    # it to the backup folder.
-    elif [ -f $input_path ]
-    then
-        # Extract the name of the file you wish to backup
-        filename=$(ls $input_path | tr "/" "\n" | tail -n 1)
-        # Add the .bak extension (Important to keep a distinction and referene it later)
-        compose_filename="${filename}.bak"
-        # Scan the directory backups to look for the file in question
-        for f in $backup_dir_contents
-        do
-            if [[ $(find $backup_dir -name $compose_filename -type f) ]]
-            then
-                printf "File found in directory\n"
-                read -p "Overwrite/exit [o/e]"
-                exit
-            else
-                # If the find command found nothing, proceed to make the copy
-                cp $input_path "$backup_dir$compose_filename"
-                # If the status code of the previous operation was 0, print a message
-                # showing it all went well, and an error message otherwise.
-                if (( $? == 0 ))
-                then
-                    echo "[+] The file has been copied succesfully"
-                    find $HOME/backups -name $compose_filename -type f
-                    exit
-                else
-                    echo "[!] An error has occurred."
-                    exit
-                fi
-            fi
-        done
-    fi
-fi
-
-# In case the path provided is the same as that of the one
-# for backups, throw a message indicating so and exit.
-if [[ $input_path =~ $backup_dir ]]
-then
-    echo "[!] Fatal."
-    echo "Source and target directories are the same"
-    echo "Exiting script..."
+    printf "Provide at least one argument...\n"
+    printf "\t[-] Folder/file name\n"
     exit 1
 fi
 
-# If the first validation passes, scan the whole directory
-# and backup every single file to its dedicated backup folder
-for f in ${input_path}*
-do
-    # If the file in quetion is a directory, skip this copy
-    # and proceed with the next file.
-    if [ -d $f ]
+# Now, if the path provieded does not exits, regardless of whether it's a file
+# or a folder, print an error message.
+if [ ! -e $input_path ]
+then
+    printf "The specified file does not exist\n"
+    exit 1
+else
+    # After passing all tests, determine if the file is a regular file or
+    # a folder
+
+    # If it's a file print a message it is a file
+    # (That's the functionality for now, more will be added).
+    if [ -f $input_path ]
     then
-        printf "[&] Skipping %s, is a directory\n" $f
-        continue
-    else
-        # Copy every file in the same folder with a .bak extension
-        cp "${f}" "${f}.bak"
-        # Then move that .bak file to the backup folder
-        mv "${f}.bak" "$backup_dir"
-        printf "[+] File %s copied\n" $f
+        printf "You have entered a file\n"
+        exit
+    # On the other hand, if it's a folder, scan the whole folder looking for files
+    elif [ -d $input_path ]
+    then
+        for f in $input_path/*
+        do
+            # If one of the entries turns out to be a folder, skip it and continue
+            # with the script.
+            if [ -d $f ]
+            then
+                continue
+            # If it's a regular file, follow a simple process to copy and rename the
+            # copy in the backup folders.
+            elif [ -f $f ]
+            then
+                # Extract file name
+                filename=$(echo $f | tr "/" "\n" | tail -n 1)
+
+                # Copy the file to the backups folder and add the .bak extension.
+                cp $f "$HOME/backups/$filename.bak"
+                printf "[+] File found: %s" $f
+
+                # If this file is found in the backups folder, print a message
+                # indicating it was copied successfully, and an error message otherwise.
+                if find $backup_dir -name $filename -type f
+                then
+                    printf ", and copied\n"
+                else
+                    printf "\nThere was a problem copying the file\n"
+                fi
+            fi
+        done
+        exit
     fi
-done
+fi

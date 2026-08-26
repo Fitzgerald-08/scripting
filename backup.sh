@@ -7,7 +7,6 @@
 # [+] Scan a whole directory and copy its contents
 
 # To be implemented
-# [~] Copy directories
 # [~] Replace .bak file extension with tarballs
 # [~] Finding duplicates
 
@@ -33,7 +32,7 @@ then
     exit 1
 fi
 
-# Now, if the path provieded does not exits, regardless of whether it's a file
+# Now, if the path provieded does not exists, regardless of whether it's a file
 # or a folder, print an error message.
 if [ ! -e $input_path ]
 then
